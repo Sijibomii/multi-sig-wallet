@@ -14,8 +14,8 @@ contract Wallet{
   mapping (uint => Transfer) public transfers;
   mapping (address => mapping(uint => bool)) public approvals;
   uint public nextId;
-  constructor(address memory _approvers, uint _quorum)public {
-    approvers =_approvers;
+  constructor(address [] memory _approvers, uint _quorum)public {
+    approvers = _approvers;
     quorum=_quorum;
   }
   function getApprovers() external view returns(address [] memory){
@@ -32,7 +32,11 @@ contract Wallet{
     nextId++;
   }
   function getTransfers() external view returns(Transfer [] memory){
-    return transfers;
+    Transfer[] memory tr = new Transfer[](nextId);
+    for (uint i = 0; i < nextId; i++) {
+        tr[i] = transfers[i];
+    }
+    return tr;
   }
   function approveTransfer(uint id) external onlyApprover(){
     require(transfers[id].sent == false, "transfer has already been approved");
@@ -47,12 +51,12 @@ contract Wallet{
     }
   }
   //receives ether
-  receive external payable {}
+  receive() external payable {}
 
   modifier onlyApprover(){
     bool allowed = false;
     for (uint i=0; i< approvers.length; i++){
-      if (approvers[i == msg.sender){
+      if (approvers[i] == msg.sender){
         allowed =true;
       }
     }
